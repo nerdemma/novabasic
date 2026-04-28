@@ -1,17 +1,20 @@
 # Nova-Basic Interpreter
 
-Nova-Basic is a lightweight, modular **BASIC programming language interpreter** developed in C for Linux/UNIX environments. It features a custom **Recursive Descent Parser** that handles complex arithmetic expressions and logical comparisons with proper operator precedence.
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
+A lightweight, modular BASIC programming language interpreter written in C for Linux/UNIX environments. Nova-Basic features a custom **Recursive Descent Parser** capable of handling complex arithmetic expressions and logical comparisons with proper operator precedence.
 
 ---
 
-## 🚀 Features
+## 🌟 Features
 
-* **Modular Design**: Code is cleanly separated into `src/` and `include/` directories for better maintainability.
-* **Recursive Descent Parser**: Supports PEMDAS (parentheses, exponents, multiplication, division, addition, subtraction).
-* **Dynamic Program Storage**: Uses a linked-list data structure to store and sort code lines automatically.
-* **Logical Operations**: Built-in support for comparisons (`==`, `<>`, `<`, `>`, `<=`, `>=`).
-* **Control Flow**: Includes `GOTO` for jumps and `IF...THEN` for conditional logic.
-* **Symbol Table**: Manages variables from `A` to `Z` with floating-point precision.
+- **Modular Architecture**: Clean separation between source files (`src/`) and headers (`include/`) for enhanced maintainability
+- **Recursive Descent Parser**: Full support for PEMDAS operator precedence (Parentheses, Exponents, Multiplication, Division, Addition, Subtraction)
+- **Dynamic Program Storage**: Automatic line sorting using linked-list data structures
+- **Logical Operations**: Built-in comparison operators (`==`, `<>`, `<`, `>`, `<=`, `>=`)
+- **Control Flow**: `GOTO` for unconditional jumps and `IF...THEN` for conditional branching
+- **Symbol Table**: Variable management (A-Z) with floating-point precision
+- **Interactive REPL**: Read-Eval-Print Loop for immediate code execution
 
 ---
 
@@ -29,52 +32,152 @@ nova-basic/
 │   └── program.c      # Program memory management
 └── Makefile           # Compilation script
 
-## Installation & Building
-* To build Nova-Basic, you need gcc and make installed on your system.
+---
 
-* 1. clone the repository. 
+## 🛠️ Installation & Building
 
-git clone [https://github.com/nerdemma/novabasic.git](https://github.com/nerdemma/novabasic.git)
-cd nova-basic
+### Prerequisites
 
-* 2. compile
-make
+- `gcc` (GNU Compiler Collection)
+- `make`
+- Linux/UNIX environment
 
-*3. run the interpreter
-./nvbasic
+### Build Instructions
 
+1. **Clone the repository**
+```bash
+   git clone https://github.com/nerdemma/novabasic.git
+   cd nova-basic
+```
 
-## 📜 Language Reference
+2. **Compile the project**
+```bash
+   make
+```
 
-| Command | Description | Example |
-| :--- | :--- | :--- |
-| **PRINT** | Displays text or the result of an expression. | `PRINT (A + 5) * 2` |
-| **LET** | Assigns a value or expression to a variable (A-Z). | `LET A = 50.5` |
-| **IF** | Conditional execution based on a comparison. | `IF A > 10 THEN GOTO 100` |
-| **GOTO** | Jumps execution to a specific line number. | `GOTO 20` |
-| **INPUT** | Prompts the user to enter a numeric value. | `INPUT B` |
-| **LIST** | Prints the current program in memory. | `LIST` |
-| **RUN** | Executes the program from the first line. | `RUN` |
-| **NEW** | Clears all lines from the current program. | `NEW` |
-| **REM** | Adds a comment (ignored during execution). | `REM This is a loop` |
-| **EXIT** | Quits the interpreter. | `EXIT` |
+3. **Run the interpreter**
+```bash
+   ./nvbasic
+```
+
+4. **Clean build artifacts** (optional)
+```bash
+   make clean
+```
 
 ---
 
-## 💻 Example Program
+## 📜 Language Reference
 
-Type the following in the terminal to create a simple loop that prints numbers from **1 to 5**:
+### Commands
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `PRINT` | Displays text or evaluates and prints an expression | `PRINT (A + 5) * 2` |
+| `LET` | Assigns a value or expression result to a variable (A-Z) | `LET A = 50.5` |
+| `IF...THEN` | Executes a statement conditionally based on comparison | `IF A > 10 THEN GOTO 100` |
+| `GOTO` | Jumps execution to a specified line number | `GOTO 20` |
+| `INPUT` | Prompts user for numeric input and stores in a variable | `INPUT B` |
+| `LIST` | Displays all program lines currently in memory | `LIST` |
+| `RUN` | Executes the stored program from the first line | `RUN` |
+| `NEW` | Clears all program lines from memory | `NEW` |
+| `REM` | Comment line (ignored during execution) | `REM This is a loop` |
+| `EXIT` | Terminates the interpreter session | `EXIT` |
+
+### Operators
+
+**Arithmetic**: `+`, `-`, `*`, `/`, `^` (exponentiation)
+
+**Comparison**: `==`, `<>`, `<`, `>`, `<=`, `>=`
+
+**Precedence**: Follows standard mathematical order (PEMDAS/BODMAS)
+
+---
+
+## 💻 Example Programs
+
+### Simple Counter Loop
+
+Prints numbers from 1 to 5:
 
 ```basic
-> 10 LET A = 1
-> 20 PRINT A
-> 30 LET A = A + 1
-> 40 IF A <= 5 THEN GOTO 20
-> 50 PRINT "Done!"
-> RUN
+10 LET A = 1
+20 PRINT A
+30 LET A = A + 1
+40 IF A <= 5 THEN GOTO 20
+50 PRINT "Done!"
+```
 
-## Contributions
-* Contributions are welcome! If you find a bug or want to add a new command (like FOR...NEXT or LOAD/SAVE), feel free to fork the repository and submit a pull request.
+Run with:
+```basic
+RUN
+```
 
-## License
-* This program is under GPL-3 License.
+**Output**:
+```basic
+1
+2
+3
+4
+5
+Done!
+```
+
+
+
+## 🚧 Roadmap
+
+Future enhancements being considered:
+
+- [ ] `FOR...NEXT` loop implementation
+- [ ] `GOSUB`/`RETURN` for subroutines
+- [ ] `LOAD`/`SAVE` for program persistence
+- [ ] String variable support
+- [ ] Array support
+- [ ] Enhanced error messages with line numbers
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how you can help:
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add some amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
+
+### Areas for Contribution
+
+- Bug fixes and error handling improvements
+- New BASIC commands (e.g., `FOR`, `GOSUB`, `DATA/READ`)
+- Documentation improvements
+- Performance optimizations
+- Test suite development
+
+---
+
+## 📄 License
+
+This project is licensed under the **GNU General Public License v3.0** - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 👨‍💻 Author
+
+**nerdemma** - [GitHub Profile](https://github.com/nerdemma)
+
+---
+
+## 🙏 Acknowledgments
+
+- Inspired by classic BASIC interpreters from the 1970s-80s
+- Built with educational purposes in mind for learning compiler/interpreter design
+
+## Books
+- Programas Comentados de Basic Básico - "Ricardo Aguado Muñoz, Agustín Blanco, Enrique Rubiales, Javier Zabala, Ricardo, Zamareno" ISBN 84-938-0330-3
+
+---
+
+**Happy Coding! 🚀**
