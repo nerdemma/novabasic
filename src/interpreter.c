@@ -5,6 +5,17 @@
 #include "../lib/interpreter.h"
 #include "../lib/program.h"
 
+#define MAX_FOR_STACK 10
+typedef struct{
+	int var_index;
+	double target_value;
+	double step_value;
+	Line *line_to_resume;
+	} ForLoop;
+	
+ForLoop for_stack[MAX_FOR_STACK];
+int for_stack_ptr = 0;
+
 
 const char *expr_ptr;
 double variables[MAX_VARS] = {0}; // TABLA DE SIMBOLOS A-Z
@@ -19,7 +30,10 @@ double evaluate(const char *s);
 double parse_comparison();
 
 double evaluate(const char *s) {
-    if (!s || *s == '\0') return 0;
+	
+    if (!s) return 0;
+    while (isspace(*s)) s++;
+    if(*s == '\0') return 0;
     expr_ptr = s;
     return parse_comparison(); 
 }
@@ -112,6 +126,41 @@ return 0;
 }
 
 
+void save_program(const char *filename)
+{
+FILE *file = fopen( filename, "w");
+if (!file){ perror("?Error: Could not open file for writing\n"); return; }
+Line *curr = program;
+	while (curr) 
+	{
+	fprintf(file, "%d %s\n",curr->number, curr->code);
+	curr = curr->next;
+	}
+fclose(file);
+printf("Program saved to %s\n", filename);
+
+}
+
+
+void load_program(const char *filename)
+{
+FILE *file = fopen(filename, "r");
+	if(!file){ printf("?Error: File not found\n"); return;} clear_program();
+char line[MAX_LINE_LENGTH];
+
+	while (fgets(line, sizeof(line), file))
+	{
+	int num;
+	char code[MAX_LINE_LENGTH];
+	if(sscanf(line, "%d %[^\n]", &num, code) == 2)
+	{
+	insert_line(num, code);
+	}
+	}
+fclose(file);
+printf("Program loaded from %s\n",filename);
+}
+
 void execute_line(char *code)
 {
 
@@ -122,9 +171,26 @@ strncpy(temp, code, MAX_LINE_LENGTH);
 char *cmd = strtok(temp, " ");
 if(!cmd) return;
 
+
+/* SAVE: SAVE [FILE_NAME]*/
+
+	if (strcmp(cmd, "SAVE") == 0){
+	char *file = strtok(NULL," ");
+	if (file) save_program(file);
+	}
+
+/* LOAD: LOAD [FILE_NAME]*/	
+
+	else if (strcmp(cmd, "LOAD") == 0)
+	{
+	char *file = strtok(NULL," ");
+	if (file) load_program(file);
+	}
+
+
 // PRINT: PRINT [VALUE]
 
-	if(strcmp(cmd, "PRINT") == 0)
+	else if(strcmp(cmd, "PRINT") == 0)
 	{ 
 	char *arg = code + (cmd - temp) + strlen(cmd);
 	while (isspace(*arg)) arg++;
@@ -142,21 +208,24 @@ if(!cmd) return;
 		
 	}
 	
+
 // LET: LET = [VALUE]	
 	else if(strcmp(cmd , "LET") == 0)
 	{
 	char *equal_sign = strchr(code, '=');
 		if (equal_sign)
 		{
-		char *var_part = temp + (cmd - temp) + strlen(cmd);
+		char *var_part = code + 4;
 		while(isspace(*var_part)) var_part++;
 		int index = toupper(*var_part) - 'A';
 				
-			if(index < 0 || index >= 26)
+			if(index >= 0 && index < 26)
+			//if(index < 0 || index >= 26)
 			{
 			variables[index] = evaluate(equal_sign + 1);
 			return;
 			}
+			else{printf("Variable Error\n");}
 		}
 	
 	}
@@ -203,25 +272,123 @@ if(!cmd) return;
 /*INPUT: INPUT [VALUE]*/
 	else if (strcmp(cmd, "INPUT") == 0)
 	{
-	char *var_part = strtok(NULL, " ");
-	if(var_part){
-	int index = toupper(var_part[0]) - 'A';
+	char *var_name = strtok(NULL, " ");
+	if(var_name){
+	int index = toupper(var_name[0]) - 'A';
 	double val;
 	printf("?");
-	scanf("%lf", &val);
+	if (scanf("%lf", &val) == 1) variables[index] = val; 
 	while(getchar() != '\n');
-	variables[index] = val;
 	}
 	}
 
 
-else if (strcmp(cmd, "REM") == 0) { /* Ignore comments.*/ }
-else printf("?Syntax Error\n");
+
+/*FOR */
+
+else if (strcmp(cmd, "FOR") == 0) {
+        char *equal_ptr = strchr(code, '=');
+        char *to_ptr = strstr(code, " TO "); 
+
+        if (equal_ptr && to_ptr) {
+            char *var_part = code + 4;
+            while (isspace(*var_part)) var_part++;
+            int index = toupper(*var_part) - 'A';
+
+			if( index >=0 && index < 26)
+				{
+				variables[index] = evaluate(equal_ptr + 1);	
+					if (for_stack_ptr < MAX_FOR_STACK)
+					{
+					for_stack[for_stack_ptr].var_index = index;
+					for_stack[for_stack_ptr].target_value = evaluate(to_ptr + 4);
+					for_stack[for_stack_ptr].step_value = 1.0;
+					
+					for_stack[for_stack_ptr].line_to_resume = current_execution_line;
+					for_stack_ptr++;
+					} 
+					
+				}
+	
+        }
+        else
+		{
+		printf("?Syntax Error in FOR: Missing '=' or 'TO'\n");
+		}
+    }
+
+/* NEXT */
+
+else if (strcmp(cmd, "NEXT") == 0) {
+        char *var_name = strtok(NULL, " ");
+        if (var_name) {
+            int index = toupper(var_name[0]) - 'A';
+            if (for_stack_ptr > 0 && for_stack[for_stack_ptr - 1].var_index == index) {
+                int current_loop = for_stack_ptr - 1;
+                variables[index] += for_stack[current_loop].step_value;
+
+                if (variables[index] <= for_stack[current_loop].target_value) {
+                    current_execution_line = for_stack[current_loop].line_to_resume;
+                } else {
+                    for_stack_ptr--; 
+                }
+            }
+        } else {
+            printf("?Next without For Error\n");
+        }
+    }
+
+
+
+/*HELP*/
+
+else if(strcmp(cmd, "HELP") == 0)
+{
+printf("---NOVABASIC-HELP-------------------------------------------\n\n");
+printf("PRINT: Displays text or the result of an expression\n");
+printf("LET: Assigns a value or expression to a variable (A-Z).\n");
+printf("IF: Conditional execution based on a comparison.\n");
+printf("GOTO: Jumps execution to a specific line number.\n");
+printf("INPUT: Prompts the user to enter a numeric value.\n");
+printf("LIST: Prints the current program in memory.\n");
+printf("RUN: Executes the program from the first line. \n");
+printf("NEW: Clears all lines from the current program.\n");
+printf("REM: Adds a comment (ignored during execution). \n");
+printf("EXIT: Quits the interpreter. \n");
+printf("FOR NEXT: Initialize a loop.\n");
+printf("HELP: Show all commands available.\n"); 
+printf("ABOUT: Name, Version, License and Information about the Author.\n\n");
+printf("Ready\n");
 }
+
+
+/* About */
+
+else if(strcmp(cmd, "ABOUT") == 0)
+{
+printf("-----------------------------------------------------\n\n");
+printf("NOVABASIC Version 1.0\n");
+printf("Develop with <3 <3 <3 By Emmanuel D. Breyaue.\n");
+printf("For more information, sugest and feedback hello[at]emmanuelbreyaue[dot]com \n\n");
+printf("Ready\n");
+}
+
+
+/* REM */
+
+	else if (strcmp(cmd, "REM") == 0) { /* Ignore comments.*/ } 
+	else printf("?Syntax Error\n");
+
+/*END COMMANDS FUNCTION*/
+}
+
 
 void run_program()
 {
+	for_stack_ptr = 0;
 	current_execution_line = program;
+	
+
 	while ( current_execution_line != NULL )
 	{
 	Line * to_execute = current_execution_line;
@@ -229,7 +396,6 @@ void run_program()
 	execute_line(to_execute->code);
 	}
 }
-
 
 void process_input(char *input)
 {
@@ -241,8 +407,9 @@ char code[MAX_LINE_LENGTH];
 		if(strcmp(input, "RUN") == 0) run_program();
 		else if(strcmp(input, "LIST") == 0) list_program();
 		else if(strcmp(input, "NEW") == 0) clear_program();
-		else if(strcmp(input, "END") == 0 || strcmp(input, "EXIT") == 0) exit(0);
+		else if(strcmp(input, "QUIT") == 0 || strcmp(input, "EXIT") == 0 || strcmp(input, "END") == 0) exit(0);
 		else execute_line(input);
 	}
 
 }
+

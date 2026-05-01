@@ -1,4 +1,4 @@
-# Nova-Basic Interpreter
+z# Nova-Basic Interpreter
 
 Nova-Basic is a lightweight, modular **BASIC programming language interpreter** developed in C for Linux/UNIX environments. It features a custom **Recursive Descent Parser** that handles complex arithmetic expressions and logical comparisons with proper operator precedence.
 
@@ -58,7 +58,9 @@ make
 | **NEW** | Clears all lines from the current program. | `NEW` |
 | **REM** | Adds a comment (ignored during execution). | `REM This is a loop` |
 | **EXIT** | Quits the interpreter. | `EXIT` |
-
+| **FOR NEXT ** | Initialize a loop | FOR I=1 TO 20 ... NEXT I |
+| ** HELP ** | Show all commands available 
+| ** ABOUT **| Name, Version, License and Information about the Author
 ---
 
 ## 💻 Example Program

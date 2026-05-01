@@ -9,7 +9,7 @@
 int main()
 {
 char line[MAX_LINE_LENGTH];
-printf("Nova-Basic Version 0.1\n");
+printf("Nova-Basic Version 1.0\n");
 printf("Ready\n");	
 
 	while(1)
