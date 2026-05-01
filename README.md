@@ -1,6 +1,25 @@
-# Nova-Basic 
+<h1 align="center">Nova-Basic</h1>
+
+
+
+<p align="center">
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+<img src="https://img.shields.io/badge/made%20by-nerdemma-blue.svg" >
+<img src="https://img.shields.io/badge/CC-11.0.1-red.svg">
+<img src="https://img.shields.io/badge/OPENBSD-7.0-green.svg">
+<img src="https://badges.frapsoft.com/os/v1/open-source.svg?v=103" >
+<img src="https://img.shields.io/github/stars/nerdemma/novabasic.svg?style=flat">
+<img src="https://img.shields.io/github/languages/top/nerdemma/novabasic.svg">
+<img src="https://img.shields.io/github/issues/nerdemma/novabasic.svg">
+<img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat">
+</p>
+
+
+
+
+
+
 
 A lightweight, modular BASIC programming language interpreter written in C for Linux/UNIX environments. Nova-Basic features a custom **Recursive Descent Parser** capable of handling complex arithmetic expressions and logical comparisons with proper operator precedence.
 
@@ -170,7 +189,7 @@ Contributions are welcome! Here's how you can help:
 This project is licensed under the **GNU General Public License v3.0** - see the [LICENSE](LICENSE) file for details.
 
 ---
-# 📄 Testing
+## 💻 Testing
 This interpreter has been tested  with successful results on a Dell Computer 170L Intel Celeron D 2.79 GHz, 1542 MB RAM with OpenBSD 7.0 i386.
 
 ---
