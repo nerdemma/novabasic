@@ -1,8 +1,9 @@
 #ifndef INTERPRETER_H
 #define INTERPRETER_H
+#include "common.h"
 
-void execute_line(char *code);
-void run_program();
+// main functions
 void process_input(char *input);
+void execute_line(char *code);
 
 #endif

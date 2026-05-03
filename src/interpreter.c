@@ -1,182 +1,46 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
+#include "../lib/common.h"
 #include "../lib/interpreter.h"
+#include "../lib/parser.h"
 #include "../lib/program.h"
 
-#define MAX_FOR_STACK 10
-typedef struct{
-	int var_index;
-	double target_value;
-	double step_value;
-	Line *line_to_resume;
-	} ForLoop;
-	
-ForLoop for_stack[MAX_FOR_STACK];
+
+
+double variables[MAX_VARS] = {0};
 int for_stack_ptr = 0;
-
-
-const char *expr_ptr;
-double variables[MAX_VARS] = {0}; // TABLA DE SIMBOLOS A-Z
+ForLoop for_stack[MAX_FOR_STACK];
 Line *current_execution_line = NULL;
 
 
-double get_value();
-double parse_expression();
-double parse_term();
-double parse_factor();
-double evaluate(const char *s);
-double parse_comparison();
-
-double evaluate(const char *s) {
-	
-    if (!s) return 0;
-    while (isspace(*s)) s++;
-    if(*s == '\0') return 0;
-    expr_ptr = s;
-    return parse_comparison(); 
-}
-
-double parse_comparison() {
-    double x = parse_expression();
-    while (1) {
-        while (isspace(*expr_ptr)) expr_ptr++;
-        
-        if (strncmp(expr_ptr, "==", 2) == 0) {
-            expr_ptr += 2;
-            x = (x == parse_expression());
-        } else if (strncmp(expr_ptr, "<>", 2) == 0) {
-            expr_ptr += 2;
-            x = (x != parse_expression());
-        } else if (strncmp(expr_ptr, "<=", 2) == 0) {
-            expr_ptr += 2;
-            x = (x <= parse_expression());
-        } else if (strncmp(expr_ptr, ">=", 2) == 0) {
-            expr_ptr += 2;
-            x = (x >= parse_expression());
-        } else if (*expr_ptr == '<') {
-            expr_ptr++;
-            x = (x < parse_expression());
-        } else if (*expr_ptr == '>') {
-            expr_ptr++;
-            x = (x > parse_expression());
-        } else {
-            return x;
-        }
-    }
-}
-
-
-double parse_expression()
-{
-	double x = parse_term();
-	while(1)
-	{
-	while(isspace(*expr_ptr)) expr_ptr++;
-	if(*expr_ptr == '+'){ expr_ptr++; x+= parse_term();}
-	else if(*expr_ptr == '-'){ expr_ptr++; x -= parse_term();}
-	else return x;
-	}
-}
-
-
-double parse_term()
-{
-double x = parse_factor();
-	while(1)
-	{
-		while(isspace(*expr_ptr)) expr_ptr++;
-		if(*expr_ptr == '*'){ expr_ptr++; x *= parse_factor(); }
-		else if(*expr_ptr == '/'){ 
-		expr_ptr++; 
-		double d = parse_factor();
-		x = (d!=0) ? x / d : 0;
-		} else return x;
-	}
-}
-
-double parse_factor()
-{
-while(isspace(*expr_ptr)) expr_ptr++;
-
-	if(isdigit(*expr_ptr) || *expr_ptr == '.'){
-	char *end;
-	double x = strtod(expr_ptr, &end);
-	expr_ptr = end;
-	return x;
-	}
-
-	if(isalpha(*expr_ptr))
-	{
-	int index = toupper(*expr_ptr) - 'A';
-	expr_ptr++;
-	return (index >=0 && index < 26)? variables[index]:0;
-	}
-
-
-	if (*expr_ptr == '(' ){
-	expr_ptr++;
-	double x = parse_expression();
-	if (*expr_ptr == ')') expr_ptr++;
-	return x;
-	}
-
-return 0;
-}
-
-
-void save_program(const char *filename)
-{
-FILE *file = fopen( filename, "w");
-if (!file){ perror("?Error: Could not open file for writing\n"); return; }
-Line *curr = program;
-	while (curr) 
-	{
-	fprintf(file, "%d %s\n",curr->number, curr->code);
-	curr = curr->next;
-	}
-fclose(file);
-printf("Program saved to %s\n", filename);
-
-}
-
-
-void load_program(const char *filename)
-{
-FILE *file = fopen(filename, "r");
-	if(!file){ printf("?Error: File not found\n"); return;} clear_program();
-char line[MAX_LINE_LENGTH];
-
-	while (fgets(line, sizeof(line), file))
-	{
-	int num;
-	char code[MAX_LINE_LENGTH];
-	if(sscanf(line, "%d %[^\n]", &num, code) == 2)
-	{
-	insert_line(num, code);
-	}
-	}
-fclose(file);
-printf("Program loaded from %s\n",filename);
-}
 
 void execute_line(char *code)
 {
 
 if (!code || strlen(code) == 0) return;
-
-char temp[MAX_LINE_LENGTH];
-strncpy(temp, code, MAX_LINE_LENGTH);
-char *cmd = strtok(temp, " ");
-if(!cmd) return;
+	char temp[MAX_LINE_LENGTH];
+	strncpy(temp, code, MAX_LINE_LENGTH);
+	char *cmd = strtok(temp, " ");
+	if(!cmd) return;
 
 
 /* SAVE: SAVE [FILE_NAME]*/
 
-	if (strcmp(cmd, "SAVE") == 0){
+	if (strcmp(cmd, "SAVE") == 0)
+	{
 	char *file = strtok(NULL," ");
-	if (file) save_program(file);
+		if (file)
+		{
+			if(file[0]=='"')
+			{
+			file++;
+			char *end = strrchr(file,'"');
+			if(end) *end ='\0';
+			}
+			save_program(file);
+		} 
+		 else
+		{
+		printf("?Filename required\n");
+		}
 	}
 
 /* LOAD: LOAD [FILE_NAME]*/	
@@ -340,25 +204,26 @@ else if (strcmp(cmd, "NEXT") == 0) {
 
 
 
+
 /*HELP*/
 
 else if(strcmp(cmd, "HELP") == 0)
 {
-printf("---NOVABASIC-HELP-------------------------------------------\n\n");
-printf("PRINT: Displays text or the result of an expression\n");
-printf("LET: Assigns a value or expression to a variable (A-Z).\n");
-printf("IF: Conditional execution based on a comparison.\n");
-printf("GOTO: Jumps execution to a specific line number.\n");
-printf("INPUT: Prompts the user to enter a numeric value.\n");
-printf("LIST: Prints the current program in memory.\n");
-printf("RUN: Executes the program from the first line. \n");
-printf("NEW: Clears all lines from the current program.\n");
-printf("REM: Adds a comment (ignored during execution). \n");
-printf("EXIT: Quits the interpreter. \n");
-printf("FOR NEXT: Initialize a loop.\n");
-printf("HELP: Show all commands available.\n"); 
-printf("ABOUT: Name, Version, License and Information about the Author.\n\n");
-printf("Ready\n");
+	printf("---NOVABASIC-HELP-------------------------------------------\n\n");
+	printf("PRINT: Displays text or the result of an expression\n");
+	printf("LET: Assigns a value or expression to a variable (A-Z).\n");
+	printf("IF: Conditional execution based on a comparison.\n");
+	printf("GOTO: Jumps execution to a specific line number.\n");
+	printf("INPUT: Prompts the user to enter a numeric value.\n");
+	printf("LIST: Prints the current program in memory.\n");
+	printf("RUN: Executes the program from the first line. \n");
+	printf("NEW: Clears all lines from the current program.\n");
+	printf("REM: Adds a comment (ignored during execution). \n");
+	printf("EXIT: Quits the interpreter. \n");
+	printf("FOR NEXT: Initialize a loop.\n");
+	printf("HELP: Show all commands available.\n"); 
+	printf("ABOUT: Name, Version, License and Information about the Author.\n\n");
+	printf("Ready\n");
 }
 
 
@@ -366,11 +231,11 @@ printf("Ready\n");
 
 else if(strcmp(cmd, "ABOUT") == 0)
 {
-printf("-----------------------------------------------------\n\n");
-printf("NOVABASIC Version 1.0\n");
-printf("Develop with <3 <3 <3 By Emmanuel D. Breyaue.\n");
-printf("For more information, sugest and feedback hello[at]emmanuelbreyaue[dot]com \n\n");
-printf("Ready\n");
+	printf("-----------------------------------------------------\n\n");
+	printf("NOVABASIC Version 1.0\n");
+	printf("Develop with <3 <3 <3 By Emmanuel D. Breyaue.\n");
+	printf("For more information, sugest and feedback hello[at]emmanuelbreyaue[dot]com \n\n");
+	printf("Ready\n");
 }
 
 
@@ -383,19 +248,8 @@ printf("Ready\n");
 }
 
 
-void run_program()
-{
-	for_stack_ptr = 0;
-	current_execution_line = program;
-	
 
-	while ( current_execution_line != NULL )
-	{
-	Line * to_execute = current_execution_line;
-	current_execution_line = current_execution_line->next;
-	execute_line(to_execute->code);
-	}
-}
+
 
 void process_input(char *input)
 {

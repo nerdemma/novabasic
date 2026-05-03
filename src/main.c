@@ -9,9 +9,8 @@
 int main()
 {
 char line[MAX_LINE_LENGTH];
-printf("Nova-Basic Version 1.0\n");
-printf("Ready\n");	
-
+printf("Nova-Basic Version 1.0\nReady\n");
+	
 	while(1)
 	{
 	printf("> ");
