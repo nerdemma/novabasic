@@ -1,23 +1,38 @@
 CC = cc
 CFLAGS = -O2 -Wall -std=c11
+INCLUDES = -Ilib
 
-INCLUDES = -Ilib 
-OBJ = nvbasic
+# Nombre del ejecutable
+TARGET = nvbasic
 
-OBJS = interpreter.o program.o main.o 
+# Directorios
+SRCDIR = src
+LIBDIR = lib
 
-all: $(OBJ)
+# Lista de objetos (ahora asociados a su fuente en src/)
+OBJS = interpreter.o program.o main.o parser.o
 
-$(OBJ): $(OBJS)
-	$(CC) $(CFLAGS) $(INCLUDES) -o $(OBJ) $(OBJS)
+all: $(TARGET)
 
+# Enlace final
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) $(INCLUDES) -o $(TARGET) $(OBJS) -lm
 
-VPATH = src
+# Regla de compilación de objetos
+# Usamos VPATH para que encuentre los .c en src/
+VPATH = $(SRCDIR)
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-clean:
-	rm -f *.o $(OBJ)
+# --- Gestión de dependencias ---
+# Esto asegura que si tocas un .h, se recompilen los .c afectados
+interpreter.o: interpreter.c $(LIBDIR)/interpreter.h $(LIBDIR)/common.h
+program.o: program.c $(LIBDIR)/program.h $(LIBDIR)/common.h
+parser.o: parser.c $(LIBDIR)/parser.h $(LIBDIR)/common.h
+main.o: main.c $(LIBDIR)/common.h
 
-.PHONY: all clean debug
+clean:
+	rm -f *.o $(TARGET)
+
+.PHONY: all clean
