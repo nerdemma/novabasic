@@ -5,5 +5,5 @@
 // main functions
 void process_input(char *input);
 void execute_line(char *code);
-
+void clear_variables(void);
 #endif

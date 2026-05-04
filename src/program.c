@@ -110,3 +110,14 @@ void run_program() {
         execute_line(to_execute->code);
     }
 }
+
+
+void clear_variables(){
+	memset(num_vars, 0, sizeof(num_vars));
+	memset(num_vars, 0, sizeof(str_vars));
+	for(int i=0; i<26; i++){
+		num_vars[i].type = TYPE_NUMBER;
+		str_vars[i].type = TYPE_STRING;
+		
+		}
+	}

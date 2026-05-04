@@ -10,6 +10,33 @@ int for_stack_ptr = 0;
 ForLoop for_stack[MAX_FOR_STACK];
 Line *current_execution_line = NULL;
 
+Variable num_vars[MAX_VARS];
+Variable str_vars[MAX_VARS];
+
+
+void set_variable(char *name, char *expression){
+	int is_string = (strchr(name, '$') != NULL);
+	int index = toupper(name[0]) - 'A';
+	
+	if(index < 0 || index >=26) return;
+	if(is_string){
+		char *start = strchr(expression, '"');
+		if(start){
+			start++;
+			char *end = strchr(start, '"');
+			if (end) *end = '\0';
+			strncpy(str_vars[index].value.string, start, MAX_STR_LEN - 1);
+			str_vars[index].type = TYPE_STRING;
+			}
+			
+		}
+		else{
+				num_vars[index].value.number = evaluate(expression);
+				num_vars[index].type = TYPE_NUMBER;
+				}
+	}
+
+
 
 
 void execute_line(char *code)
@@ -56,8 +83,14 @@ if (!code || strlen(code) == 0) return;
 
 	else if(strcmp(cmd, "PRINT") == 0)
 	{ 
-	char *arg = code + (cmd - temp) + strlen(cmd);
-	while (isspace(*arg)) arg++;
+	
+	char *arg = code;
+	char *p = strstr(code, "PRINT");
+	if(p){ arg = p + 5;}
+	
+	while (isspace((unsigned char)*arg)) arg++;
+		if (*arg == '\0') {printf("\n"); return;}
+		
 		if (*arg == '"')
 		{
 			arg++;
@@ -65,6 +98,18 @@ if (!code || strlen(code) == 0) return;
 			if(end) *end = '\0';
 			printf("%s\n",arg);
 		}
+		
+		else if(isalpha((unsigned char)*arg) && *(arg + 1) == '$')
+		{
+		int index = toupper((unsigned char)*arg) - 'A';
+		
+		if(index >= 0 && index < 26)
+		{
+		printf("%s\n", str_vars[index].value.string);
+		}
+		}
+		
+		
 		else 
 		{
 		printf("%g\n", evaluate(arg));	
@@ -79,14 +124,13 @@ if (!code || strlen(code) == 0) return;
 	char *equal_sign = strchr(code, '=');
 		if (equal_sign)
 		{
-		char *var_part = code + 4;
-		while(isspace(*var_part)) var_part++;
+		char *var_part = code + (cmd - temp) + strlen(cmd);
+		while(isspace((unsigned char)*var_part)) var_part++;
 		int index = toupper(*var_part) - 'A';
 				
 			if(index >= 0 && index < 26)
-			//if(index < 0 || index >= 26)
 			{
-			variables[index] = evaluate(equal_sign + 1);
+			set_variable(var_part, equal_sign + 1);
 			return;
 			}
 			else{printf("Variable Error\n");}
@@ -145,6 +189,7 @@ if (!code || strlen(code) == 0) return;
 	while(getchar() != '\n');
 	}
 	}
+
 
 
 
@@ -260,7 +305,7 @@ char code[MAX_LINE_LENGTH];
 	else{ input[strcspn(input, "\n")] = 0; 
 		if(strcmp(input, "RUN") == 0) run_program();
 		else if(strcmp(input, "LIST") == 0) list_program();
-		else if(strcmp(input, "NEW") == 0) clear_program();
+		else if(strcmp(input, "NEW") == 0) {clear_program(); clear_variables();}
 		else if(strcmp(input, "QUIT") == 0 || strcmp(input, "EXIT") == 0 || strcmp(input, "END") == 0) exit(0);
 		else execute_line(input);
 	}

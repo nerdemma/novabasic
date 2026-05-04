@@ -81,7 +81,8 @@ double parse_factor()
 {
 while(isspace(*expr_ptr)) expr_ptr++;
 
-	if(isdigit(*expr_ptr) || *expr_ptr == '.'){
+	if(isdigit(*expr_ptr) || *expr_ptr == '.')
+	{
 	char *end;
 	double x = strtod(expr_ptr, &end);
 	expr_ptr = end;
@@ -96,7 +97,8 @@ while(isspace(*expr_ptr)) expr_ptr++;
 	}
 
 
-	if (*expr_ptr == '(' ){
+	if (*expr_ptr == '(' )
+	{
 	expr_ptr++;
 	double x = parse_expression();
 	if (*expr_ptr == ')') expr_ptr++;
