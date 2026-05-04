@@ -1,0 +1,5 @@
+10 LET A$="INICIO DEL BUCLE"
+20 PRINT A$
+Z
+
+
