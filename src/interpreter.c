@@ -82,61 +82,100 @@ if (!code || strlen(code) == 0) return;
 // PRINT: PRINT [VALUE]
 
 	else if(strcmp(cmd, "PRINT") == 0)
-	{ 
-	
-	char *arg = code;
-	char *p = strstr(code, "PRINT");
-	if(p){ arg = p + 5;}
-	
-	while (isspace((unsigned char)*arg)) arg++;
-		if (*arg == '\0') {printf("\n"); return;}
-		
-		if (*arg == '"')
-		{
-			arg++;
-			char *end = strchr(arg, '"');
-			if(end) *end = '\0';
-			printf("%s\n",arg);
-		}
-		
-		else if(isalpha((unsigned char)*arg) && *(arg + 1) == '$')
-		{
-		int index = toupper((unsigned char)*arg) - 'A';
-		
-		if(index >= 0 && index < 26)
-		{
-		printf("%s\n", str_vars[index].value.string);
-		}
-		}
-		
-		
-		else 
-		{
-		printf("%g\n", evaluate(arg));	
-		}
-		
-	}
-	
+    { 
+        char *arg = code + (cmd - temp) + strlen(cmd);
+        
+        while(*arg != '\0')
+        {
+            
+            while (isspace((unsigned char)*arg)) arg++;
+            if (*arg == '\0') break;
+            
+            
+            if (*arg == '"')
+            {
+                arg++;
+                char *end = strchr(arg, '"');
+                if(end) {
+                    *end = '\0';
+                    printf("%s", arg);
+                    arg = end + 1;
+                } else {
+                   
+                    printf("%s", arg);
+                    arg += strlen(arg);
+                }
+            }
+           
+            else if(isalpha((unsigned char)*arg) && *(arg + 1) == '$')
+            {
+                int index = toupper((unsigned char)*arg) - 'A';
+                if(index >= 0 && index < 26)
+                {
+                    printf("%s", str_vars[index].value.string); 
+                }
+                arg += 2;
+            }
+           
+            else 
+            {
+                char temp_expr[MAX_LINE_LENGTH];
+                int i = 0;
+                
+                while (arg[i] != '\0' && !isspace((unsigned char)arg[i]))
+                {
+                    temp_expr[i] = arg[i];
+                    i++;
+                }
+                temp_expr[i] = '\0';
+                
+                if (i > 0) {
+                    printf("%g", evaluate(temp_expr)); 
+                    arg += i; 
+                } else {
+                    arg++;
+                }
+            }
+            
+            
+            while (isspace((unsigned char)*arg)) arg++;
+            if (*arg != '\0') printf(" ");
+        }
+        
+        printf("\n");
+    }
 
-// LET: LET = [VALUE]	
-	else if(strcmp(cmd , "LET") == 0)
-	{
-	char *equal_sign = strchr(code, '=');
-		if (equal_sign)
-		{
-		char *var_part = code + (cmd - temp) + strlen(cmd);
-		while(isspace((unsigned char)*var_part)) var_part++;
-		int index = toupper(*var_part) - 'A';
-				
-			if(index >= 0 && index < 26)
-			{
-			set_variable(var_part, equal_sign + 1);
-			return;
-			}
-			else{printf("Variable Error\n");}
-		}
-	
-	}
+
+else if(strcmp(cmd, "LET") == 0)
+    {
+        char *equal_sign = strchr(code, '=');
+        if (equal_sign)
+        {
+            char *var_part = code + (cmd - temp) + strlen(cmd);
+            while(isspace((unsigned char)*var_part)) var_part++;
+            
+          
+            int index = toupper((unsigned char)*var_part) - 'A';
+            
+            if(index >= 0 && index < 26)
+            {
+                char clean_name[10];
+                int i = 0;
+                while(!isspace((unsigned char)var_part[i]) && var_part[i] != '=' && i < 9) {
+                    clean_name[i] = var_part[i];
+                    i++;
+                }
+                clean_name[i] = '\0';
+                
+                set_variable(clean_name, equal_sign + 1);
+            }
+            else {
+                printf("?VARIABLE ERROR\n");
+            }
+        }
+    }
+
+
 
 // IF: IF [exp] THEN [instructions]
 	else if(strcmp(cmd, "IF") == 0)
@@ -181,13 +220,50 @@ if (!code || strlen(code) == 0) return;
 	else if (strcmp(cmd, "INPUT") == 0)
 	{
 	char *var_name = strtok(NULL, " ");
-	if(var_name){
-	int index = toupper(var_name[0]) - 'A';
-	double val;
-	printf("?");
-	if (scanf("%lf", &val) == 1) variables[index] = val; 
-	while(getchar() != '\n');
-	}
+
+		if(var_name)
+		{
+		int index = toupper((unsigned char)var_name[0]) - 'A';
+			if (index < 0 || index >=26)
+			{
+			printf("variable error\n");
+			return;
+			}
+			
+		printf("?");
+		fflush(stdout);
+
+			if(strchr(var_name, '$'))
+			{
+			char buffer[MAX_STR_LEN];
+				if(fgets(buffer, MAX_STR_LEN, stdin))
+				{
+				buffer[strcspn(buffer,"\n" )] = '\0';
+				memset(str_vars[index].value.string, 0, MAX_STR_LEN);
+				strncpy(str_vars[index].value.string, buffer, MAX_STR_LEN - 1);
+				str_vars[index].type = TYPE_STRING;
+				}
+			}
+
+			else
+			{
+			double val;
+			char input_buf[64];
+				if(fgets(input_buf, sizeof(input_buf), stdin))
+				{
+					if(sscanf(input_buf, "%lf", &val) == 1)
+					{
+					num_vars[index].value.number = val;
+					num_vars[index].type = TYPE_NUMBER;
+					}
+					else
+					{
+					printf("?Redo from start\n");
+					}
+				}
+			}
+
+		}
 	}
 
 

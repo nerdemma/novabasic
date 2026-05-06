@@ -79,31 +79,42 @@ double x = parse_factor();
 
 double parse_factor()
 {
-while(isspace(*expr_ptr)) expr_ptr++;
+    while(isspace((unsigned char)*expr_ptr)) expr_ptr++;
 
-	if(isdigit(*expr_ptr) || *expr_ptr == '.')
-	{
-	char *end;
-	double x = strtod(expr_ptr, &end);
-	expr_ptr = end;
-	return x;
-	}
+    
+    if(isdigit((unsigned char)*expr_ptr) || *expr_ptr == '.')
+    {
+        char *end;
+        double x = strtod(expr_ptr, &end);
+        expr_ptr = end;
+        return x;
+    }
 
-	if(isalpha(*expr_ptr))
-	{
-	int index = toupper(*expr_ptr) - 'A';
-	expr_ptr++;
-	return (index >=0 && index < 26)? variables[index]:0;
-	}
+    
+    if(isalpha((unsigned char)*expr_ptr))
+    {
+        int index = toupper((unsigned char)*expr_ptr) - 'A';
+        expr_ptr++;
+    
+        if (*expr_ptr == '$') {
+            expr_ptr++; 
+            return 0;
+        }
+        
+        if (index >= 0 && index < 26) {
+            return num_vars[index].value.number;
+        }
+        return 0;
+    }
 
+    
+    if (*expr_ptr == '(' )
+    {
+        expr_ptr++;
+        double x = parse_expression();
+        if (*expr_ptr == ')') expr_ptr++;
+        return x;
+    }
 
-	if (*expr_ptr == '(' )
-	{
-	expr_ptr++;
-	double x = parse_expression();
-	if (*expr_ptr == ')') expr_ptr++;
-	return x;
-	}
-
-return 0;
+    return 0;
 }
